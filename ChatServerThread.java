@@ -1,3 +1,11 @@
+/**
+ * ChatServerThread class by Jonathan Wong
+ * @author Jonathan Wong
+ * 
+ * Server-side thread responsible for handling a single instance of a client socket connection.
+ * Handles incoming messages and new socket connections.
+ */
+
 import java.net.*;
 import java.io.*;
 
@@ -5,11 +13,8 @@ public class ChatServerThread extends Thread {
 
 	User user;
 	private Socket socket = null;
-	//private ChatProtocol p;
-	private String userName;
 	private boolean active;
 	private Chatter chatter;
-	private Thread sender;
 	
 	public ChatServerThread (Socket socket) {
 		super ("ChatServerThread");
@@ -18,6 +23,11 @@ public class ChatServerThread extends Thread {
 		this.socket = socket;
 	} // constructor
 	
+	/**
+	 * Completes a new socket connection to a client, and stores its corresponding User information
+	 * within the Chatter thread. It will continually listen for incoming messages, and add it to
+	 * the Chatter's buffer.
+	 */
 	public void run() {
 				
 		try (
@@ -30,13 +40,12 @@ public class ChatServerThread extends Thread {
 			out.println(outputLine);
 			
 			inputLine = in.readLine();
-			userName = "[" + inputLine + "]";
+			String userName = "[" + inputLine + "]";
 			user = new User(userName,out);
 			chatter.addUser(user);
 			out.println("[Server] You are now logged in as " + userName + ".");
 						
 			while(active) {
-				
 				
 				while ((inputLine = in.readLine()) != null) {
 					
@@ -48,7 +57,6 @@ public class ChatServerThread extends Thread {
 				}
 				
 				chatter.addMsg(outputLine);
-				//out.println(outputLine);
 				} // while inputLine block
 			}
 			ChatServer.decrement();
@@ -57,6 +65,7 @@ public class ChatServerThread extends Thread {
 			socket.close();
 		}
 		catch (IOException e) {
+			System.out.println("Connection error detected. Details as follows:");
 			e.printStackTrace();
 		}
 		
