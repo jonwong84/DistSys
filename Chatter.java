@@ -7,6 +7,8 @@
 
 import java.util.Vector;
 
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 public class Chatter extends Thread {
 
 	Vector<User> userbase;
@@ -56,6 +58,16 @@ public class Chatter extends Thread {
 		userbase.add(u);
 		msgBuffer.add("[Server] " + u.name + " has entered the server.");
 	} // addUser
+	
+	public synchronized void removeUser(User u) {
+		java.util.Iterator<User> i = userbase.iterator();
+		
+		while (userbase.contains(u)) {
+		User within = i.next();
+		if (within.name.equals(u.name)) userbase.remove(within);
+		}
+		
+	} // removeUser
 
 	/**
 	 * Adds a new String message to the buffer.
