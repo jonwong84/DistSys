@@ -1,3 +1,9 @@
+/**
+ * ChatServer Program by Jonathan Wong [nModZero]
+ * 
+ * 
+ */
+
 import java.io.*;
 import java.net.*;
 
@@ -5,7 +11,8 @@ public class ChatServer {
 	
 	String address;
 	static int port;
-	static Chatter db;
+	static Thread t;
+	static Chatter chatter;
 	static boolean capped;
 	static int connections;
 	static final int limit = 10;
@@ -17,10 +24,13 @@ public class ChatServer {
         int portNumber = 9999;
         boolean listening = true;
 		System.out.println("Chat Server application initiated.");
-		db = new Chatter();
-		db.run();
+		t = new Thread(new Chatter());
+		t.start();
          
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+        	
+        	System.out.println("IP and port data: " + serverSocket.getInetAddress() + " " + portNumber);
+        	
             while (listening) {
             	
             	gateCheck();
@@ -44,7 +54,7 @@ public class ChatServer {
 	
 	public static synchronized void decrement() {
 		connections--;
-		System.out.println("Decremented to " + connections + ".");
+		System.out.println("Closed connection detected. Connections now at " + connections + ".");
 	} // decrement
 	
 } // ChatServer

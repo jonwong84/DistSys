@@ -3,16 +3,18 @@ import java.io.*;
 
 public class ChatServerThread extends Thread {
 
+	User user;
 	private Socket socket = null;
-	private ChatProtocol p;
+	//private ChatProtocol p;
 	private String userName;
 	private boolean active;
-	private Chatter db;
+	private Chatter chatter;
+	private Thread sender;
 	
 	public ChatServerThread (Socket socket) {
 		super ("ChatServerThread");
 		active = true;
-		db = ChatServer.db;
+		chatter = ChatServer.chatter;
 		this.socket = socket;
 	} // constructor
 	
@@ -23,26 +25,36 @@ public class ChatServerThread extends Thread {
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				) {
 			String inputLine, outputLine;
-			p = new ChatProtocol(db);
 			
-			outputLine = p.processInput("");
-			out.println("[Server]: " + outputLine);
+			outputLine = "[Server] Connection successful!";
+			out.println(outputLine);
+			
 			inputLine = in.readLine();
 			userName = "[" + inputLine + "]";
-			out.println("[Server]: Name registered as " + userName + ".");
-			
-			new ChatServerReader(socket,in).run();
-			//db.addUser(socket,out);
-			
+			user = new User(userName,out);
+			chatter.addUser(user);
+			out.println("[Server] You are now logged in as " + userName + ".");
+						
 			while(active) {
 				
-				//inputLine = p.processInput(in.readLine());
-				out.println(outputLine);
-				if (outputLine.equals("/exit"))
+				
+				while ((inputLine = in.readLine()) != null) {
+					
+					outputLine = user.name + " " + inputLine;
+				
+				if (inputLine.equals("/exit")) {
 					active = false;
+					outputLine = "[Server] " + userName + " has left the server.";
+				}
+				
+				chatter.addMsg(outputLine);
+				//out.println(outputLine);
+				} // while inputLine block
 			}
-			socket.close();
 			ChatServer.decrement();
+			socket.shutdownInput();
+			socket.shutdownOutput();
+			socket.close();
 		}
 		catch (IOException e) {
 			e.printStackTrace();

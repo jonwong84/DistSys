@@ -1,42 +1,43 @@
-import java.net.*;
-import java.util.HashMap;
 import java.util.Vector;
-import java.io.*;
 
 public class Chatter extends Thread {
 	
-	private final int bufferSize = 10;
-	private int m, msg_count, index;
-	public int head, users;
-	Socket[] sockets;
-	
-	
-	Vector<String> messages;
-	
-	private boolean okToWrite, okToRead;
-	private int numReaders, numWriters, numWaitingReaders, numWaitingWriters;
-	
-	String[] buffer;
+	Vector<User> userbase;	
+	Vector<String> msgBuffer;
 	
 	public Chatter () {
-		System.out.println("[Server]: Database is now running.");
-		users = 0;
-		head = 0;
-		m = bufferSize;
-		msg_count = 0;
-		buffer = new String[m];
+		System.out.println("[Server] Chatter thread instantiated.");
+		ChatServer.chatter = this;
+		msgBuffer = new Vector<String>();
+		userbase = new Vector<User>();
 	}
 	
 	public void run() {
 		
+		System.out.println("[Server] Chatter thread running.");
+		while (true)
+			if (msgBuffer.size() > 0 && userbase.size() > 0) sendOutMessages();
 	} // run
 	
-	public synchronized void addUser(Socket s) {
-
+	private synchronized void sendOutMessages() {
+		
+		User u = null;
+		while (msgBuffer.size() > 0) {
+			for (int i = 0; i < userbase.size(); i++) {
+				u = userbase.elementAt(i);
+				u.sendMsg(msgBuffer.elementAt(0));
+			}
+			msgBuffer.removeElementAt(0);
+		}
+	} // sendOutMessages
+	
+	public synchronized void addUser(User u) {
+		userbase.add(u);
+		msgBuffer.add("[Server] " + u.name + " has entered the server.");
 	} // addUser
 	
-	public synchronized void write(String msg) {
-		messages.add(msg);
+	public synchronized void addMsg(String msg) {
+		msgBuffer.add(msg);
 	} // addMsg
 	
 	public String read(int i) {
@@ -44,11 +45,5 @@ public class Chatter extends Thread {
 		
 		return s;
 	} // readMsg
-	
-	public synchronized boolean hasNewMessages(int i) {
-		boolean b = false;
-		if (i != head) b = true;
-		return b;
-	} // hasNewMessages
 
 } // ChatManager

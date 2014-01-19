@@ -5,34 +5,34 @@ public class ChatClientReader extends Thread {
 
 	private Socket socket = null;
 	BufferedReader in;
-	
+
 	public ChatClientReader(Socket s) {
-		super ("ChatClientReader");
+		super("ChatClientReader");
 		socket = s;
-		
+
 		try {
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			in = new BufferedReader(new InputStreamReader(
+					socket.getInputStream()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 	} // constructor
-	
+
 	public void run() {
-		
+
 		String fromServer = "";
 
 		while (!socket.isClosed()) {
 			try {
 				while ((fromServer = in.readLine()) != null)
-					System.out.println("CCR " + fromServer);
+					System.out.println(fromServer);
 			} catch (IOException e) {
-				System.out.println("Buffer input error. Exiting.");
-				e.printStackTrace();
-				System.exit(-1);
+				System.out.println("Connection closed. Ending program.");
+				return;
 			} // inner loop
 		} // outer loop
-		
+
 	} // run
-	
+
 } // ClientMsgReader
